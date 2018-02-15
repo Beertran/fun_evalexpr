@@ -1,7 +1,8 @@
 module Expr where
 
-import           Data.Char   (isDigit, ord)
+import           Data.Char   (isDigit, ord, isSpace)
 import           Data.String
+import           Data.List
 
 type SyntaxError = String
 
@@ -35,7 +36,7 @@ repl :: IO ()
 repl = getLine >>= interpret
   where
     interpret "exit" = return ()
-    interpret s      = putStrLn (arithmetic s) >> repl
+    interpret s      = putStrLn (arithmetic (epurStr s)) >> repl
 
 arithmetic :: String -> String
 arithmetic s =
@@ -103,5 +104,5 @@ pow2 base pui res =
      then pow2 base (pui-1) (res*base)
      else res
 
-
-
+epurStr :: String -> String
+epurStr = filter(/=' ')
