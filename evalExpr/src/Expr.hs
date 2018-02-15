@@ -5,7 +5,7 @@ import           Data.String
 
 type SyntaxError = String
 
-data Expr = Val Int
+data Expr = Val Double
           | Plus Expr Expr
           | Sub Expr Expr
           | Mul Expr Expr
@@ -30,24 +30,6 @@ instance Num Expr where
   abs    = Abs
   signum = undefined
 
-{-normalise :: Expr -> Expr
-normalise expr@(Plus (Val x) (Val y))
-  | x > y     = (Plus (Val y) (Val x))
-  | otherwise = expr
-normalise expr@(Mul (Val x) (Val y))
-  | x > y     = (Mul (Val y) (Val x))
-  | otherwise = expr
-normalise (Plus e1 e2)  = Plus (normalise e1) (normalise e2)
-normalise (Mul e1 e2)  = Mul (normalise e1) (normalise e2)
-normalise e = e
-
-simplify :: Expr -> Expr
-simplify expr@(Plus (Mul x y) (Mul x'  y'))
-  | x == x' = Mul x (Plus y y')
-  | y == y' = Mul y (Plus x x')
-  | otherwise =  expr
-simplify e = e-}
-
 -- 1/ I/O
 repl :: IO ()
 repl = getLine >>= interpret
@@ -62,11 +44,11 @@ arithmetic s =
     Right ex -> show $ evalExpr ex
 
 -- 3/ Evaluateur
-evalExpr :: Expr -> Int
+evalExpr :: Expr -> Double
 evalExpr (Plus v1 v2) = evalExpr v1 + evalExpr v2
 evalExpr (Mul  v1 v2) = evalExpr v1 * evalExpr v2
 evalExpr (Sub  v1 v2) = evalExpr v1 - evalExpr v2
-evalExpr (Div  v1 v2) = evalExpr v1 `div` evalExpr v2
+evalExpr (Div  v1 v2) = evalExpr v1 / evalExpr v2
 evalExpr (Pow  v1 v2) = evalExpr v1 `pow` evalExpr v2
 evalExpr (Val  v1)     = v1
 
@@ -90,12 +72,12 @@ arithParser cs =
 
 intParser :: String -> Either SyntaxError (Expr, String)
 intParser (c:rest)
-  | isDigit c = intParser' (ord c - ord '0') rest
+  | isDigit c = intParser' (fromIntegral(ord c - ord '0')) rest
   | otherwise = Left ("syntax error in '" ++ (c:rest) ++ "', expected Expr digit")
   where
-    intParser' :: Int -> String -> Either SyntaxError (Expr, String)
+    intParser' :: Double -> String -> Either SyntaxError (Expr, String)
     intParser' n (c:cs)
-      | isDigit c = intParser' (n* 10 + (ord c - ord '0')) cs
+      | isDigit c = intParser' (n* 10 + (fromIntegral (ord c - ord '0'))) cs
       | otherwise = Right (Val n, c:cs)
     intParser' n [] = Right (Val n, [])
 intParser []  = Left ("syntax error in '" ++ [] ++ "', expected a digit")
@@ -109,10 +91,10 @@ operatorParser ('^':rest) = Right (Pow, rest)
 operatorParser s          = Left ("syntax error in '" ++ s ++ "', expected an operator ")
 
 -- Fonctions
-pow :: Int -> Int -> Int
+pow :: Double -> Double -> Double
 pow base pui =
   if pui > 0
-     then pow2 (fromIntegral base) (fromIntegral (pui-1)) (fromIntegral base)
+     then pow2 base (pui-1) base
      else base
 
 pow2 :: Double -> Double -> Double -> Double
